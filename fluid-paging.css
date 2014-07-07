@@ -1,0 +1,54 @@
+.fluid-paging{
+	background: transparent;
+	text-align: left;
+	font-size: 0;
+	padding: 0;
+	margin: 0;
+	border: 1px solid #333;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.fluid-paging li{
+	margin: 0;
+	padding: 0;
+	font-size: 12px;
+	display: inline-block;
+	vertical-align: top;
+	text-align: center;
+	list-style: none;
+	background: #EEE;
+	color: #000;
+	line-height: 28px;
+}
+
+.fluid-paging li.dots{
+	cursor: default;
+	user-select: none;
+	-webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+}
+
+.fluid-paging li button{
+	border: none;
+	background: transparent;
+	color: #000;
+	text-align: center;
+	padding: 6px 7px;
+	height: 28px;
+	margin: 0;
+	display: block;
+	width: 100%;
+}
+
+.fluid-paging li button:hover, .fluid-paging li button:active, .fluid-paging li.active{
+	background: #373737;
+	color: #FFF;
+	cursor: pointer;
+}
+
+.fluid-paging li.active button{
+	color: #FFF;
+}
