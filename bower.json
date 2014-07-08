@@ -1,0 +1,11 @@
+{
+  "name": "fluidPaging",
+  "version": "1.0",
+  "description": "Fluid Pagination plugin for jQuery",
+  "homepage": "https://github.com/DustlandOpenSource/fluidPaging",
+  "author": "Nick Kelly",
+  "main": ["fluid-paging.js"],
+  "dependencies": {
+  	"jquery": "~1.11.0"
+  }
+}
