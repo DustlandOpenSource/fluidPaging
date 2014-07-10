@@ -9,7 +9,12 @@
 	$.fn.fluidPaging = function(options){
 
 		//make into settings object
-		var	paging = function(el){ this.init(el); },
+		var	paging = function(el){
+				this.$el = null;
+				this.$children = null;
+
+				this.init(el);
+			},
 			settings = $.extend(true, {
 				nextArrowClass: 'pagination-next',
 				prevArrowClass: 'pagination-prev',
@@ -31,7 +36,9 @@
 				generateArrows: true, //only used if generatePages is true. Generate the previous and next arrows.
 				numPages: 0, //only used if generatePages is true
 				pageTemplate: function(pageNumber){
-					return '<li class="'+ (pageNumber + 1 === settings.activePageNumber ? settings.activeClass : '') + '"><button type="button" title="page '+ (pageNumber + 1) +' ">' + (pageNumber + 1) + '</button></li>'
+					return '<li><button type="button" title="page '+ (pageNumber + 1) +' ">' + (pageNumber + 1) + '</button></li>'
+				},
+				onPageChange: function(e, el, pageNumber){
 				}
 			}, options);
 
@@ -47,8 +54,6 @@
 			widthMap: {},
 			timer: null,
 			activeIndex: 0,
-			$el: null,
-			$children: null,
 			remainder: 0,
 			init: function(el){
 				var self = this;
@@ -68,7 +73,8 @@
 				//using find as the active class may be on child elements
 				self.activeIndex = self.$children.filter('.' + settings.activeClass).index() - self.$el.children('.' + settings.prevArrowClass).length;
 
-				self.render();
+				self.setOnPageClick()
+					.setActivePage();
 
 				//on resize reset the paging
 				$(window).on('resize', function() {
@@ -81,6 +87,19 @@
 				self.timer = setTimeout(function(){
 					self.render();
 				}, 100);
+			},
+			/**
+			 * When clicking the page lis change to the given page
+			 */
+			setOnPageClick: function(){
+				var self = this;
+				self.$children.on('click', function(e){
+					//assume that the only text in the element is the page number
+					settings.activePageNumber = parseInt($(this).text());
+					self.setActivePage();
+					settings.onPageChange(e, this, settings.activePageNumber);
+				});
+				return self;
 			},
 			/**
 			 * Determine how wide our container is
@@ -98,7 +117,18 @@
 					.setChildrenWidth()
 					.setButtonsVisible()
 					.distributeRemainder()
-					.renderDots();
+					.renderDots()
+					.setArrowsOnClick();
+			},
+			setActivePage: function(){
+				if(settings.generatePages){
+					this.$el.find('.' + settings.activeClass).removeClass(settings.activeClass);
+					this.$children.eq(settings.activePageNumber - 1).addClass(settings.activeClass);
+				}
+
+				this.render();
+
+				return this;
 			},
 			setButtonsVisible: function(){
 				//start with the active index and go to the left and right one
@@ -183,6 +213,8 @@
 			 * @return {[type]} [description]
 			 */
 			elementWidth: function(el){
+				if(!$(el).is(':visible')){ return 0; }
+
 				var ow = $(el).outerWidth(),
 					owT = $(el).outerWidth(true);
 
@@ -194,7 +226,17 @@
 				return this;
 			},
 			setArrowsWidth: function(){
-				this.arrowsWidth = (this.elementWidth(this.nextArrow) || 0) + (this.elementWidth(this.prevArrow) || 0);
+				this.arrowsWidth = 0;
+
+				if(this.nextArrow.length){
+					(settings.generatePages && settings.activePageNumber == settings.numPages) ? this.nextArrow.hide() : this.nextArrow.show();
+					this.arrowsWidth += this.elementWidth(this.nextArrow);
+				}
+
+				if(this.prevArrow.length){
+					(settings.generatePages && settings.activePageNumber === 1) ? this.prevArrow.hide() : this.prevArrow.show();
+					this.arrowsWidth += this.elementWidth(this.prevArrow);
+				}
 
 				return this;
 			},
@@ -229,7 +271,7 @@
 			createPages: function(){
 				var pages = [];
 
-				if(settings.generateArrows){
+				if(settings.generateArrows && settings.activePageNumber > 1){
 					pages.push(settings.arrowTemplate('prev'));
 				}
 
@@ -244,6 +286,23 @@
 				this.$el.html(pages.join(''));
 
 				return this;
+			},
+			setArrowsOnClick: function(){
+				var self = this;
+
+				$('.' + settings.nextArrowClass).on('click', function(e){
+					settings.activePageNumber += 1;
+					self.setActivePage();
+					settings.onPageChange(e, this, settings.activePageNumber);
+				});
+
+				$('.' + settings.prevArrowClass).on('click', function(e){
+					settings.activePageNumber -= 1;
+					self.setActivePage();
+					settings.onPageChange(e, this, settings.activePageNumber);
+				});
+
+				return self;
 			}
 		};
 
