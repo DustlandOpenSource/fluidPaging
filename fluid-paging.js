@@ -18,6 +18,8 @@
 			settings = $.extend(true, {
 				nextArrowClass: 'pagination-next',
 				prevArrowClass: 'pagination-prev',
+				alwaysShowLastPage: true,
+				alwaysShowFirstPage: true,
 				arrowTemplate: function(type){
 					if(type === 'prev'){
 						return '<li class="' + settings.prevArrowClass +'"><button type="button">&lt;</button></li>';
@@ -71,7 +73,7 @@
 				self.nextArrow = self.$el.children('.' + settings.nextArrowClass);
 
 				//using find as the active class may be on child elements
-				self.activeIndex = self.$children.filter('.' + settings.activeClass).index() - self.$el.children('.' + settings.prevArrowClass).length;
+				self.activeIndex = self.$el.find('.' + settings.activeClass).index() - self.$el.children('.' + settings.prevArrowClass).length;
 
 				self.setOnPageClick()
 					.setActivePage();
@@ -143,6 +145,13 @@
 				if(self.areHiddenChildren){
 					//remove the width of the active index button as it should always be shown
 					widthLeft -= self.widthMap[self.activeIndex];
+					if(settings.alwaysShowFirstPage && self.activeIndex !== 0){
+						widthLeft -= self.widthMap[0];
+					}
+
+					if(settings.alwaysShowLastPage && self.activeIndex !== childrenLen){
+						widthLeft -= self.widthMap[childrenLen];
+					}
 
 					while(widthLeft > 0){
 						var nextIndex = self.curNextIndex + 1,
@@ -176,6 +185,14 @@
 
 					if(self.activeIndex + self.curNextIndex < childrenLen){
 						self.$children.slice(self.activeIndex + self.curNextIndex + 1).hide();
+					}
+
+					if(settings.alwaysShowFirstPage){
+						self.$children.slice(0,1).show();
+					}
+
+					if(settings.alwaysShowLastPage){
+						self.$children.slice(self.$children.length - 1).show();
 					}
 				} else {
 					self.remainder = widthLeft - self.childrenWidth;
@@ -289,17 +306,21 @@
 			},
 			setArrowsOnClick: function(){
 				var self = this;
-
+				//check the number of pages
 				$('.' + settings.nextArrowClass).on('click', function(e){
-					settings.activePageNumber += 1;
-					self.setActivePage();
-					settings.onPageChange(e, this, settings.activePageNumber);
+					if(settings.activePageNumber < settings.numPages){
+						settings.activePageNumber += 1;
+						self.setActivePage();
+						settings.onPageChange(e, this, settings.activePageNumber);
+					}
 				});
 
 				$('.' + settings.prevArrowClass).on('click', function(e){
-					settings.activePageNumber -= 1;
-					self.setActivePage();
-					settings.onPageChange(e, this, settings.activePageNumber);
+					if(settings.activePageNumber > 0){
+						settings.activePageNumber -= 1;
+						self.setActivePage();
+						settings.onPageChange(e, this, settings.activePageNumber);
+					}
 				});
 
 				return self;
